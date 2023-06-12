@@ -2,6 +2,7 @@ package exchange.impl;
 
 import conf.ConfProvider;
 import exchange.Exchange;
+import exeption.ConfigurationExeption;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -18,8 +19,10 @@ public class DollarsToRubles implements Exchange {
 
     public BigDecimal exchange(BigDecimal currency) {
         Map<String, BigDecimal> map = confProvider.exchangeConf();
-        // TODO: проверка на null
-        return currency.multiply(map.get(EXCHANGE_DOLLAR))
-                .setScale(confProvider.getRoundScale(), RoundingMode.HALF_UP);
+        BigDecimal exchangeRate = map.get(EXCHANGE_DOLLAR);
+        if (exchangeRate == null) {
+            throw new ConfigurationExeption();
+        }
+        return currency.multiply(exchangeRate).setScale(confProvider.getRoundScale(), RoundingMode.HALF_UP);
     }
 }
