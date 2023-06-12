@@ -1,12 +1,15 @@
 package exchange;
 
+import conf.ConfProvider;
 import exchange.impl.DollarsToRubles;
 import exchange.impl.RublesToDollars;
 import exeption.IncompatibleCurrencyTypesException;
 import exeption.IncorrectStringFormatException;
+import exeption.UnknownCurrencyTypeException;
 import util.ExpressionUtils;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 import static constants.Constants.*;
 
@@ -14,18 +17,20 @@ public class ExchangeOperator {
 
     private final Exchange dollarConverter;
     private final Exchange rubleConverter;
+    private final ConfProvider confProvider;
     MathSolution mathSolution;
 
     public ExchangeOperator() {
         dollarConverter = new DollarsToRubles();
         rubleConverter = new RublesToDollars();
+        confProvider = new ConfProvider();
         mathSolution = new MathSolution();
     }
 
     public String exchangeOperation(String exchangeRequest) {
         exchangeRequest = getPreparedLine(exchangeRequest.toLowerCase());
         checkRequest(exchangeRequest);
-        return getResult(exchangeRequest);
+        return round(getResult(exchangeRequest));
     }
 
     private void checkRequest(String exchangeRequest) {
@@ -87,5 +92,17 @@ public class ExchangeOperator {
             return rubleConverter.exchange(new BigDecimal(result.replace(DOLLAR, ""))) + RUBLE;
         }
         throw new IncorrectStringFormatException();
+    }
+
+    private String round(String expression) {
+        confProvider.getRoundScale();
+        if (expression.startsWith(DOLLAR)) {
+            expression = expression.replace(DOLLAR, "");
+            return DOLLAR + new BigDecimal(expression).setScale(confProvider.getRoundScale(), RoundingMode.HALF_UP);
+        } else if (expression.endsWith(RUBLE)) {
+            expression = expression.replace(RUBLE, "");
+            return new BigDecimal(expression).setScale(confProvider.getRoundScale(), RoundingMode.HALF_UP) + RUBLE;
+        }
+        throw new UnknownCurrencyTypeException();
     }
 }

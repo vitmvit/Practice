@@ -5,7 +5,6 @@ import exchange.Exchange;
 import exeption.ConfigurationExeption;
 
 import java.math.BigDecimal;
-import java.math.RoundingMode;
 import java.util.Map;
 
 public class DollarsToRubles implements Exchange {
@@ -23,6 +22,6 @@ public class DollarsToRubles implements Exchange {
         if (exchangeRate == null) {
             throw new ConfigurationExeption();
         }
-        return currency.multiply(exchangeRate).setScale(confProvider.getRoundScale(), RoundingMode.HALF_UP);
+        return currency.multiply(exchangeRate);
     }
 }
